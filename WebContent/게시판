@@ -1,0 +1,56 @@
+
+
+[전체 흐름 목차]
+
+게시판 만들기 
+
+1.version1 : 단순한 CRUD 기능만 구현 -> 자바빈 사용
+		   	 CRUD 란? Create(새글을 생성하여 추가) 
+		   	 		   Read(하나의 글정보를 검색) 
+		   	 		 Update(하나의 글정보 수정) 
+		   	 		 Delete(하나의 글정보 삭제) 
+		   	 		 
+2.version2 : 게시판 페이징 기술 구현 
+페이징 기술이란? 게시판에 등록된 많은 글들을 하나의 페이지에 다보여지게 하지 않고,
+여러 페이지로 나누어서 DB에 저장된(등록된) 글을 검색해서 화면에 나타냄 
+한 페이지 당 보여줄 개수를 제한시켜서 페이지를 여러개 만드는거 
+
+3.version3 : 주글에 대한 답변글 등록 기능 구현
+
+------------------------------------------------------------------
+게시판 테이블 생성 
+
+jspbeginner데이터 베이스 내부에 tblBoard게시판 테이블 만들기
+ 
+create table tblBoard(
+	글번호 저장
+	글쓴이 저장 
+	글쓴이의 이메일 주소 저장 
+	글쓴이의 홈페이지 주소 
+	글제목 저장 
+	글내용 저장 
+	글에 대한 비밀번호 저장 
+	글을 조회한 조회수 저장 
+	글쓴이의 IP주소 저장
+	글쓴 날짜 저장 
+	답변글 작성시 글에 대한 들여쓰기 정도 값 저장 
+	주글과 답변글의 같은 값을 가지기 위한 그룹값 저장 
+);
+
+
+
+create table tblBoard(
+	num int primary key AUTO_INCREMENT,
+	name varchar(20), 
+	email varchar(50),
+	homepage varchar(100),
+	subject varchar(50),
+	content varchar(100),
+	pass varchar(10),
+	count int,
+	ip varchar(50),
+	regdate datetime,
+	depth int,
+	pos	  int
+);
+
