@@ -14,6 +14,8 @@
 <br>
 <table width=80% cellspacing=0 cellpadding=3 align=center>
 <form name=post method=post action="PostProc.jsp" >
+	<%--글을 작성하는 사람의 IP주소 전달 --%>
+ 	<input type="hidden" name="ip" value="<%=request.getRemoteAddr() %>">
  <tr>
   <td align=center>
    <table border=0 width=100% align=center>
