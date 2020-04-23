@@ -5,7 +5,9 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <HTML>
 <link href="style.css" rel="stylesheet" type="text/css">
+
 <script>
+
 	function check(){
 		//검색어를 입력 하지 않았다면
 		if(document.search.keyWord.value == ""){
@@ -19,6 +21,28 @@
 		//입력한 검색어, 검색기준값을 request내장객체 영역에 저장 후 요청이 일어남
 		document.search.submit();
 	}
+	
+	//추가2.
+	//처음으로 링크 눌렀을때.. 호출되는 함수 
+	function fnList() {
+		//<form>태그의 name속성을 이용해 접근하여 action속성의 값을 List.jsp로 설정 
+		document.list.action = "List.jsp";
+		//<form>태그의 요청 전송 
+		document.list.submit(); 
+	}
+	
+	//글제목을 클릭했을때.. 수정할 글번호를 매개변수로 전달 받아 새로 생성하는 form태그 내부의 input태그의 value속성값으로 설정
+	//설정후 form태그를 이용해 전송!
+	function fnRead(num){
+		
+		document.read.num.value = num;
+		document.read.submit();
+		
+	}
+	
+	
+	
+	
 </script>
 <BODY>
 <center><br>
@@ -43,6 +67,17 @@
 		//입력한 검색어 얻기 
 		keyWord = request.getParameter("keyWord");
 	}
+	
+	//추가4.
+	//[처음으로] 링크를 클릭했을때.. (List.jsp를 재요청 했을때..)
+	//<input>태그의 type속성값이 hidden으로 요청한 name=reload인 값이 존재 하면(재요청한 값이 존재 하면)
+	if(request.getParameter("reload") != null){
+		//만약 List.jsp페이지로 다시 요청받은 값이 true와 같을때..(재요청을 했다면)
+		if(request.getParameter("reload").equals("true")){
+			keyWord = ""; //입력한 검색어를 비우기 위해 빈문자열을 변수에 저장 
+		}
+	}
+	
 
 	//게시판 테이블에 저장되어 있는 글을 조회하기 위해 BoardDaoImpl객체의 getBoardList메소드 호출시..
 	//선택한 검색기준값과, 입력한 검색어를 전달하여 SELECT작업을 진행함.
@@ -97,7 +132,12 @@
 					%>	
 						<tr align="center">
 							<td> <%=num %> </td>
-							<td> <%=subject %> </td>
+							<td>
+								<%--게시판 글 리스트 중에서 글제목을 클릭했을때.. 함수 호출시 수정할 글번호를 전달하여 form태그를 실행 --%>
+								<a href="Read.jsp" onclick="fnRead('<%=num%>'); return false;" >
+								<%=subject %>
+								</a> 
+							</td>
 							<td><a href="mailto:<%=email%>"><%=name %></a></td>
 							<td> <%=s.format(regdate) %> </td>
 							<td> <%=count %> </td>	
@@ -118,7 +158,9 @@
 	<td align="left">Go to Page </td>
 	<td align=right>
 		<a href="Post.jsp">[글쓰기]</a>
-		<a href="javascript:list()">[처음으로]</a>
+		
+		<%--추가1. --%>
+		<a href="#" onclick="fnList(); return false;" >[처음으로]</a>
 	</td>
 </tr>
 </table>
@@ -141,5 +183,27 @@
 	</table>
 </form>
 </center>	
+
+
+<%--추가3. 현재 List.jsp페이지가 리로드 하는지 않하는지 구별 하기 위한 true값을 다시 List.jsp에 요청함 --%>
+<form name="list" method="post">
+	<input type="hidden" name="reload" value="true"/>
+</form>
+
+<%--게시판 글리스트 정보 중 글제목을 클릭했을때..
+	Read.jsp로 선택한 글번호, 글을 선택하기 위해 검색한 검색 기준값, 글을 선택하기 위해 검색한 검색어값을 전달함.
+	 --%>
+
+<form action="Read.jsp" name="read" method="post">
+
+	<input type ="hidden" name="num"> <%--수정할 글번호 전달 --%>
+	<input type ="hidden" name="keyField" value="<%=keyField%>"/>
+	<input type="hidden" name="keyWord" value="<%=keyWord %>"/>
+	
+</form>
+	 
+	 
+	 
+
 </BODY>
 </HTML>
