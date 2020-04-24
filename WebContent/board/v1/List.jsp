@@ -156,6 +156,9 @@
 </tr>
 <tr>
 	<td align="left">Go to Page </td>
+	
+		◀이전블록으로 이동 
+	
 	<td align=right>
 		<a href="Post.jsp">[글쓰기]</a>
 		

@@ -229,10 +229,28 @@ public class BoardDaoImpl implements IBoardDao{
 	
 	
 
+	//게시판의 하나의 글을 삭제하는 메소드
+	// ->매개변수로 전달받는 삭제할 글번호에 해당되는 글을 DELETE 삭제 
+	
 	@Override
 	public void deleteBoard(int num) {
-		// TODO Auto-generated method stub
-		
+		try {
+			//DB접속 
+			con = ds.getConnection();
+			//DELETE 문장 만들기 
+			//DELETE 문장 만들어 
+			pstmt = con.prepareStatement("delete from tblBoard where num=?");
+			//?기호에 대응되는 삭제할 글번호 설정
+			pstmt.setInt(1,num);
+			//DELETE문장 실행
+			pstmt.executeUpdate();
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println("deleteBoard메소드에서 오류 : " + e);
+		}finally {
+			//자원해제 
+			freeResource();
+		}
 	}
 
 	
