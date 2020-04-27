@@ -206,10 +206,13 @@
 						Timestamp regdate = tmp.getRegdate();
 						int count = tmp.getCount();
 						String email = tmp.getEmail();
+						//들여쓰기값 얻어 저장 
+						int depth = tmp.getDepth();
 					%>	
-						<tr align="center">
+						<tr>
 							<td> <%=num %> </td>
 							<td>
+								<%=dao.useDepth(depth) %>
 								<%--게시판 글 리스트 중에서 글제목을 클릭했을때.. 함수 호출시 수정할 글번호를 전달하여 form태그를 실행 --%>
 								<a href="Read.jsp" onclick="fnRead('<%=num%>'); return false;" >
 								<%=subject %>

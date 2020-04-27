@@ -64,13 +64,19 @@ public class BoardDaoImpl implements IBoardDao{
 				
 				//가장 최신 글이 위로 오게 num필드값을 기준으로 하여 내림차순 정렬 하여 전체 글목록 검색 
 				//SQL만들기
-				sql = "select * from tblBoard order by num desc";
-
+//				sql = "select * from tblBoard order by num desc";
+				sql = "select * from tblBoard order by pos asc";
+				
+				
 			//검색어를 입력 했다면?
 			}else {
 				
+//				sql = "select * from tblBoard where " + keyField
+//						+ " like '%" + keyWord + "%' order by num desc";
+				
 				sql = "select * from tblBoard where " + keyField
-						+ " like '%" + keyWord + "%' order by num desc";
+						+ " like '%" + keyWord + "%' order by pos asc";
+
 			}
 			//3.SQL문을 실행할 객체 얻기
 			pstmt = con.prepareStatement(sql);
@@ -111,6 +117,31 @@ public class BoardDaoImpl implements IBoardDao{
 					//각각 BoardDto객체에 저장 후 모든 BoardDto객체들을 담고 있는 Vector리턴
 	}//getBoardList메소드 끝 
 
+	//답변글 등록하기 
+	//1. 부모글보다 큰 POS는 1씩 증가시킨다.
+	//2. 답변글은 부모글의 POS값에 1을 더해준다.
+	//3. 답변글 입력시 부모글의 depth(들여쓰기정도값)에 1을 더해준다.
+	//....................................................
+	
+	//부모글의 POS값을 전달받아.. 부모글보다 큰 POS값이 존재하면 POS값에 1을 더해서 수정하는 메소드
+	public void replyUpPos(int ParentPos) {
+		try {
+			//DB연결 
+			con = ds.getConnection();
+			String sql = "update tblBoard set pos=pos + 1 where pos > ?";
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, ParentPos);	//주글(부모글)의 POS값을 ?에 대응되는 값으로 설정 
+			pstmt.executeUpdate();
+			
+		} catch (Exception e) {
+			System.out.println("replyUpPos메소드내부에서 예외발생 : " + e.getMessage());
+		}finally {
+			freeResource();
+		}
+	}
+	
+	
+	
 	//DB에 새글을 추가 시키는 메소드
 	//-> PostProc.jsp페이지에서 호출하는 메소드로.. 사용자가 입력한 새글 정보를 BoardDto객체에 저장후 
 	//  insertBoard메소드 호출 시 인자로 전달받는다.
@@ -119,8 +150,16 @@ public class BoardDaoImpl implements IBoardDao{
 		try {
 			//1. 커넥션풀(DataSource)로부터 커넥션(Connection)얻기
 			con = ds.getConnection(); //DB연결
-			//2. SQL 구문 만들기 (insert구문 만들기) 
-			String sql ="insert into tblBoard(name,email,homepage,subject,"
+			
+			//[1] 새글 (주글, 부모글)을 다는 규칙2.
+			//새로운 데이터를 입력할때 먼저 기존 데이터의 모든 pos값은 1씩 증가시킨다.
+			String sql = "update tblBoard set pos = pos + 1";
+			pstmt = con.prepareStatement(sql);
+			pstmt.executeUpdate();
+			
+			//[2] 새글을 다는 규칙3
+			//처음 입력되는 데이터(주글, 부모글)는 무조건 pos와 depth값은 0으로 입력한다. 
+			sql ="insert into tblBoard(name,email,homepage,subject,"
 					+ "content,regdate,pass,count,ip,pos,depth)"
 					+ "values(?,?,?,?,?,?,?,0,?,0,0);";	//count -> 0, pos -> 0 ,depth ->0 
 			//3.위 insert문장(SQL구문)을 DB에 전달하여 실행할 객체(PreparedStatement)얻기 
@@ -363,12 +402,59 @@ public class BoardDaoImpl implements IBoardDao{
 		return dto;	//DB로부터 검색한 하나의 글정보를 BoardDto객체에 저장 후 Update.jsp로 반환
 
 	}//getBoardInfo(int num)메소드
-
+	//DB에 답변글을 등록하는 메소드
+	//-> 매개변수로 전달받는 BoardDto객체의 각 변수에는 
+	//입력한 답변글정보 + 부모글(주글)의 pos,depth이 저장되어 있음 
+	
 	@Override
 	public void replyBoard(BoardDto dto) {
-		// TODO Auto-generated method stub
-		
+		try {
+			//DB연결 
+			con = ds.getConnection();
+			//2.추가할 답변글은? 부모글의 pos에 1을 더한값 사용 
+			int pos =  dto.getPos() + 1;
+			//3.추가할 답변글은? 부모글의 depth에 1을 더한값 사용 
+			int depth = dto.getDepth() + 1;
+			//답변글 insert쿼리문 
+			 
+			String sql ="insert into tblBoard(name,email,homepage,subject,"
+					+ "content,regdate,pass,count,ip,pos,depth)"
+					+ "values(?,?,?,?,?,?,?,0,?,?,?);";	//count -> 0, pos -> 0 ,depth ->0 
+			
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, dto.getName());
+			pstmt.setString(2, dto.getEmail());
+			pstmt.setString(3, dto.getHomepage());
+			pstmt.setString(4, dto.getSubject());
+			pstmt.setString(5, dto.getContent());
+			pstmt.setTimestamp(6, dto.getRegdate());
+			pstmt.setString(7, dto.getPass());
+			pstmt.setString(8, dto.getIp());
+			pstmt.setInt(9, pos);//추가할 답변글은? 부모글의 pos에 1을 더한값 사용
+			pstmt.setInt(10,depth);	//추가할 답변글은? 부모글의  depth에 1을 더한값 사용 
+			
+			pstmt.executeUpdate();	//답변글정보 insert
+			
+		} catch (Exception e) {
+			System.out.println("replyBoard메소드 내부에서 예외발생 : " + e.getMessage());
+		}finally {
+			freeResource();
+		}
 	}
+	
+	//답변글의 들여쓰기를 처리하기 위한 메소드
+	public String useDepth(int depth) {//글에 대한 들여쓰기 정도값(레벨값)을 전달받아 사용 
+		String result="";
+		
+		//반복하여 __정도 들여쓰기값 저장
+		for(int i=0; i < depth*3; i++) {
+			result += "&nbsp";
+		}
+		return result;
+		
+	}//useDepth메소드 끝 
+	
+	
 	
 	
 }
